@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Elevação do Nível do Rio Taquari</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        h1 {
+            color: #007BFF;
+        }
+        label, p {
+            font-size: 16px;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 8px;
+            font-size: 16px;
+        }
+        button {
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Análise de Elevação do Nível do Rio Taquari</h1>
+    <form id="form">
+        <label for="nivel_atual">Nível atual em Encantado (m):</label>
+        <input type="number" id="nivel_atual" step="0.01" required>
+        <br>
+        <label for="hora_atual">Hora atual (HH:MM):</label>
+        <input type="time" id="hora_atual" required>
+        <br>
+        <button type="button" onclick="calcular()">Calcular</button>
+    </form>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        function calcular() {
+            // Níveis padrão
+            const nivelPadrao = {
+                Encantado: 18.30,
+                Estrela: 13.00,
+                BomRetiro: 31.70,
+                Taquari: 32.00
+            };
+
+            // Tempos de atraso (em minutos)
+            const tempoAtraso = {
+                Encantado_Estrela: 255, // 4h15min
+                Estrela_BomRetiro: 75, // 1h15min
+                BomRetiro_Taquari: 165 // 2h45min
+            };
+
+            // Entrada do usuário
+            const nivelAtual = parseFloat(document.getElementById('nivel_atual').value);
+            const horaAtual = document.getElementById('hora_atual').value;
+
+            if (isNaN(nivelAtual) || !horaAtual) {
+                alert("Por favor, insira todos os valores.");
+                return;
+            }
+
+            // Cálculo do aumento
+            const aumento = nivelAtual - nivelPadrao.Encantado;
+
+            // Conversão da hora para minutos
+            const [horas, minutos] = horaAtual.split(':').map(Number);
+            const horaInicialMinutos = horas * 60 + minutos;
+
+            // Cálculo dos horários e níveis das outras cidades
+            const horaEstrelaMinutos = horaInicialMinutos + tempoAtraso.Encantado_Estrela;
+            const horaBomRetiroMinutos = horaEstrelaMinutos + tempoAtraso.Estrela_BomRetiro;
+            const horaTaquariMinutos = horaBomRetiroMinutos + tempoAtraso.BomRetiro_Taquari;
+
+            const nivelEstrela = nivelPadrao.Estrela + aumento;
+            const nivelBomRetiro = nivelPadrao.BomRetiro + aumento;
+            const nivelTaquari = nivelPadrao.Taquari + aumento;
+
+            // Função para converter minutos de volta para HH:MM
+            function converterMinutosParaHora(minutosTotais) {
+                const horas = Math.floor(minutosTotais / 60) % 24;
+                const minutos = minutosTotais % 60;
+                return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+            }
+
+            // Exibir resultados
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h2>Resultados</h2>
+                <p>Estrela: Nível ${nivelEstrela.toFixed(2)}m às ${converterMinutosParaHora(horaEstrelaMinutos)}</p>
+                <p>Bom Retiro do Sul: Nível ${nivelBomRetiro.toFixed(2)}m às ${converterMinutosParaHora(horaBomRetiroMinutos)}</p>
+                <p>Taquari: Nível ${nivelTaquari.toFixed(2)}m às ${converterMinutosParaHora(horaTaquariMinutos)}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
